@@ -8,7 +8,7 @@ module.exports = {
 	async run(client) {
 		client.user.setActivity("Loading");
 
-		//require("../handlers/commands_handler")(client);
+		require("../handlers/commands_handler")(client);
 		//require("../handlers/cards_handler")(client);
 
 		const guilds = client.guilds.cache;

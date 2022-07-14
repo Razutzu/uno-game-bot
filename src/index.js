@@ -29,6 +29,6 @@ client.random_element = (arr) => {
 	return arr[Math.floor(Math.random() * arr.length)];
 };
 
-require("./handlers/event_handler.js")(client);
+require("./handlers/events_handler.js")(client);
 
 client.login(process.env.TOKEN);

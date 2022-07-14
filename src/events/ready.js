@@ -9,7 +9,7 @@ module.exports = {
 		client.user.setActivity("Loading");
 
 		require("../handlers/commands_handler")(client);
-		//require("../handlers/cards_handler")(client);
+		require("../handlers/cards_handler")(client);
 
 		const guilds = client.guilds.cache;
 		const to_send = [];

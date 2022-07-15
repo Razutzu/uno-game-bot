@@ -14,7 +14,7 @@ module.exports = {
 		const guilds = client.guilds.cache;
 		const to_send = [];
 
-		const db_guilds = await guild_model.find().catch((err) => console.trace(`❌| Database error: ${err}`));
+		const db_guilds = await guild_model.find().catch((err) => console.trace(`❌ | Database error: ${err}`));
 		client.db_guilds = Array.from(db_guilds.values(), (value) => {
 			return value.guild_id;
 		});
@@ -30,11 +30,7 @@ module.exports = {
 			return { status: status, name: guild.name };
 		});
 
-		const embed = new MessageEmbed()
-			.setColor(client.clr)
-			.setAuthor({ name: "Hi there!" })
-			.setDescription("I still have to come up with an embed design")
-			.setTimestamp();
+		const embed = new MessageEmbed().setColor(client.clr).setAuthor({ name: "Hi there!" }).setDescription("I still have to come up with an embed design").setTimestamp();
 
 		let int = setInterval(async () => {
 			if (to_send.length == 0) return clearInterval(int);
@@ -58,7 +54,7 @@ module.exports = {
 				channel.send({ embeds: [embed] }).catch(() => (sent = false));
 			}
 
-			const guild_data = await guild_model.create({ guild_id: guild.id }).catch((err) => console.trace(`❌| Database error: ${err}`));
+			const guild_data = await guild_model.create({ guild_id: guild.id }).catch((err) => console.trace(`❌ | Database error: ${err}`));
 			client.db_guilds.push(guild.id);
 
 			to_send.shift();

@@ -1,4 +1,4 @@
-const { MessageEmbed, MessageActionRow } = require("discord.js");
+const { MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
 
 class Game {
 	constructor(interaction, client, max_players) {
@@ -21,8 +21,24 @@ class Game {
 			.setFooter({ text: interaction.channel.name, iconURL: client.user.avatarURL() })
 			.setTimestamp();
 
-		const row = new MessageActionRow();
-		const row1 = new MessageActionRow();
+		this.current_components = [
+			new MessageActionRow().setComponents([
+				new MessageButton().setCustomId(`kick_${interaction.channel.id}`).setStyle("DANGER").setLabel("Kick Player").setDisabled(true),
+				new MessageButton().setCustomId(`ban_${interaction.channel.id}`).setStyle("DANGER").setLabel("Ban Player").setDisabled(true),
+				new MessageButton().setCustomId(`unban_${interaction.channel.id}`).setStyle("DANGER").setLabel("Unban Player").setDisabled(true),
+				new MessageButton().setCustomId(`lock_${interaction.channel.id}`).setStyle("DANGER").setLabel("Lock").setDisabled(true),
+				new MessageButton().setCustomId(`switch_${interaction.channel.id}`).setStyle("DANGER").setLabel("Change Host").setDisabled(true),
+			]),
+			new MessageActionRow().setComponents([
+				new MessageButton().setCustomId(`ready_${interaction.channel.id}`).setStyle("SUCCESS").setLabel("Ready").setDisabled(true),
+				new MessageButton().setCustomId(`join_${interaction.channel.id}`).setStyle("PRIMARY").setLabel("Join"),
+				new MessageButton().setCustomId(`leave_${interaction.channel.id}`).setStyle("PRIMARY").setLabel("Leave"),
+			]),
+		];
+
+		interaction.reply({ embeds: [this.current_embed], components: this.current_components }).catch((err) => {
+			console.log(err);
+		});
 	}
 	has_started() {
 		if (this.started) return true;
@@ -31,7 +47,6 @@ class Game {
 	player_join() {}
 	player_leave() {}
 	is_playable() {}
-
 	game_start() {}
 	game_stop() {}
 	game_end() {}

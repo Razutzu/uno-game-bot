@@ -1,4 +1,4 @@
-const { Client, Intents } = require("discord.js");
+const { Client, GatewayIntentBits } = require("discord.js");
 const { connect } = require("mongoose");
 
 require("dotenv").config();
@@ -16,7 +16,7 @@ connect(`mongodb+srv://Razutzu:${pass}@unobotdb.dsflabj.mongodb.net/?retryWrites
 		console.log(`❌ | Something went wrong when trying to connect to the database: ${err}`);
 	});
 
-const client = new Client({ intents: new Intents(1) });
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.games = new Map();
 client.cards = new Map();

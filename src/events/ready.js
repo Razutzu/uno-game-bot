@@ -1,6 +1,6 @@
 const guild_model = require("../models/guild_schema");
 
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 
 module.exports = {
 	name: "ready",
@@ -30,7 +30,7 @@ module.exports = {
 			return { status: status, name: guild.name };
 		});
 
-		const embed = new MessageEmbed().setColor(client.clr).setAuthor({ name: "Hi there!" }).setDescription("I still have to come up with an embed design").setTimestamp();
+		const embed = new EmbedBuilder().setColor(client.clr).setAuthor({ name: "Hi there!" }).setDescription("I still have to come up with an embed design").setTimestamp();
 
 		let int = setInterval(async () => {
 			if (to_send.length == 0) return clearInterval(int);

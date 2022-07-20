@@ -1,4 +1,4 @@
-const { MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require("discord.js");
 
 class Game {
 	constructor(interaction, client, max_players) {
@@ -13,26 +13,26 @@ class Game {
 		this.users = [{ user: interaction.user, ready: false }];
 		this.players = [];
 
-		this.current_embed = new MessageEmbed()
+		this.current_embed = new EmbedBuilder()
 			.setColor(client.clr)
 			.setAuthor({ name: "🎮 Let's play UNO! 🎮" })
 			.setDescription("You can use the command `/help` if you don't know how I work or you don't know the rules of the game.\n\nHave fun! 😁")
-			.addField("Users", this.players_to_string())
+			.addFields([{ name: "Users", value: this.players_to_string() }])
 			.setFooter({ text: interaction.channel.name, iconURL: client.user.avatarURL() })
 			.setTimestamp();
 
 		this.current_components = [
-			new MessageActionRow().setComponents([
-				new MessageButton().setCustomId(`kick_${interaction.channel.id}`).setStyle("DANGER").setLabel("Kick Player").setDisabled(true),
-				new MessageButton().setCustomId(`ban_${interaction.channel.id}`).setStyle("DANGER").setLabel("Ban Player").setDisabled(true),
-				new MessageButton().setCustomId(`unban_${interaction.channel.id}`).setStyle("DANGER").setLabel("Unban Player").setDisabled(true),
-				new MessageButton().setCustomId(`lock_${interaction.channel.id}`).setStyle("DANGER").setLabel("Lock").setDisabled(true),
-				new MessageButton().setCustomId(`switch_${interaction.channel.id}`).setStyle("DANGER").setLabel("Change Host").setDisabled(true),
+			new ActionRowBuilder().setComponents([
+				new ButtonBuilder().setCustomId(`kick_${interaction.channel.id}`).setStyle(ButtonStyle.Danger).setLabel("Kick Player").setDisabled(true),
+				new ButtonBuilder().setCustomId(`ban_${interaction.channel.id}`).setStyle(ButtonStyle.Danger).setLabel("Ban Player").setDisabled(true),
+				new ButtonBuilder().setCustomId(`unban_${interaction.channel.id}`).setStyle(ButtonStyle.Danger).setLabel("Unban Player").setDisabled(true),
+				new ButtonBuilder().setCustomId(`lock_${interaction.channel.id}`).setStyle(ButtonStyle.Danger).setLabel("Lock").setDisabled(true),
+				new ButtonBuilder().setCustomId(`switch_${interaction.channel.id}`).setStyle(ButtonStyle.Danger).setLabel("Change Host").setDisabled(true),
 			]),
-			new MessageActionRow().setComponents([
-				new MessageButton().setCustomId(`ready_${interaction.channel.id}`).setStyle("SUCCESS").setLabel("Ready").setDisabled(true),
-				new MessageButton().setCustomId(`join_${interaction.channel.id}`).setStyle("PRIMARY").setLabel("Join"),
-				new MessageButton().setCustomId(`leave_${interaction.channel.id}`).setStyle("PRIMARY").setLabel("Leave"),
+			new ActionRowBuilder().setComponents([
+				new ButtonBuilder().setCustomId(`ready_${interaction.channel.id}`).setStyle(ButtonStyle.Success).setLabel("Ready").setDisabled(true),
+				new ButtonBuilder().setCustomId(`join_${interaction.channel.id}`).setStyle(ButtonStyle.Primary).setLabel("Join"),
+				new ButtonBuilder().setCustomId(`leave_${interaction.channel.id}`).setStyle(ButtonStyle.Primary).setLabel("Leave"),
 			]),
 		];
 

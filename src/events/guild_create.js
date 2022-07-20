@@ -1,6 +1,6 @@
 const guild_model = require("../models/guild_schema");
 
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 
 module.exports = {
 	name: "guildCreate",
@@ -10,7 +10,7 @@ module.exports = {
 
 		if (client.db_guilds.includes(guild.id)) return;
 
-		const embed = new MessageEmbed()
+		const embed = new EmbedBuilder()
 			.setColor(client.clr)
 			.setAuthor({ name: "Hi there!" })
 			.setDescription("I still have to come up with an embed design")

@@ -36,17 +36,34 @@ class Game {
 			]),
 		];
 
-		interaction.reply({ embeds: [this.current_embed], components: this.current_components }).catch((err) => {
-			console.log(err);
-		});
+		this.last_msg = null;
+
+		this.update_message(true);
+
+		client.games.set(interaction.channel.id, this);
 	}
 	has_started() {
 		if (this.started) return true;
 		return false;
 	}
-	player_join() {}
-	player_leave() {}
-	is_playable() {}
+	is_full() {
+		if (this.users.length == this.max_players) return true;
+		return false;
+	}
+	is_player() {}
+	is_user(user) {
+		if (this.users.find((u) => u.user.id == user.id)) return true;
+		return false;
+	}
+	user_join(user) {
+		this.users.push({ user: user, ready: false });
+		this.current_embed.setFields([{ name: "Users", value: this.players_to_string() }]);
+
+		if (this.users.length == 2) this.current_components[1].components[0].setDisabled(false);
+
+		this.update_message(false);
+	}
+	user_leave() {}
 	game_start() {}
 	game_stop() {}
 	game_end() {}
@@ -57,17 +74,28 @@ class Game {
 		if (this.started) {
 		} else {
 			for (const player of this.users) {
-				let rank = "🎮";
+				let rank = "👤";
 				let status = "❌";
 
 				if (player.user.id == this.creator_id) rank = "👑";
 				if (player.ready) status = "✅";
 
-				players += `> ${rank} ${player.user.username} - ${status}`;
+				players += `> ${rank} ${player.user.username} - ${status}\n`;
 			}
 		}
 
 		return players;
+	}
+	update_message(new_message) {
+		if (new_message && this.last_msg)
+			return this.last_msg
+				.edit({ embeds: [this.current_embed], components: this.current_components })
+				.then((msg) => (this.last_msg = msg))
+				.catch();
+		return this.channel
+			.send({ embeds: [this.current_embed], components: this.current_components })
+			.then((msg) => (this.last_msg = msg))
+			.catch();
 	}
 }
 

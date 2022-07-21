@@ -17,7 +17,7 @@ class Game {
 			.setColor(client.clr)
 			.setAuthor({ name: "🎮 Let's play UNO! 🎮" })
 			.setDescription("You can use the command `/help` if you don't know how I work or you don't know the rules of the game.\n\nHave fun! 😁")
-			.addFields([{ name: "Users", value: this.players_to_string() }])
+			.addFields([{ name: "Players", value: this.players_to_string() }])
 			.setFooter({ text: interaction.channel.name, iconURL: client.user.avatarURL() })
 			.setTimestamp();
 
@@ -38,7 +38,10 @@ class Game {
 
 		this.last_msg = null;
 
-		this.update_message(true);
+		interaction
+			.reply({ embeds: [this.current_embed], components: this.current_components })
+			.then((msg) => (this.last_msg = msg))
+			.catch();
 
 		client.games.set(interaction.channel.id, this);
 	}
@@ -55,15 +58,36 @@ class Game {
 		if (this.users.find((u) => u.user.id == user.id)) return true;
 		return false;
 	}
-	user_join(user) {
-		this.users.push({ user: user, ready: false });
-		this.current_embed.setFields([{ name: "Users", value: this.players_to_string() }]);
+	user_join(interaction) {
+		this.users.push({ user: interaction.user, ready: false });
+		this.current_embed.setFields([{ name: "Players", value: this.players_to_string() }]);
 
-		if (this.users.length == 2) this.current_components[1].components[0].setDisabled(false);
+		if (this.users.length == 2) this.current_components[1].components[0].setDisabled(false); // enabling the 'Ready' button
 
-		this.update_message(false);
+		this.update_message(interaction, false);
 	}
-	user_leave() {}
+	user_leave(interaction) {
+		this.users.splice(this.users.indexOf(this.users.find((u) => u.user.id == interaction.user.id)), 1);
+
+		if (this.users.length == 0) {
+			for (const action_row of this.current_components) {
+				for (const button of action_row.components) {
+					button.setDisabled(true);
+				}
+			}
+			this.current_embed.setDescription("All the players left so the game was cancelled. Use the `/create` command to create another game.");
+			this.current_embed.setFields([]);
+		} else if (this.users.length == 1) this.current_components[1].components[0].setDisabled(true);
+
+		if (this.users.length >= 1) {
+			if (interaction.user.id == this.creator_id) this.creator_id = this.users[0].user.id;
+
+			for (const user of this.users) user.ready = false;
+
+			this.current_embed.setFields([{ name: "Players", value: this.players_to_string() }]);
+		}
+		this.update_message(interaction, false);
+	}
 	game_start() {}
 	game_stop() {}
 	game_end() {}
@@ -86,12 +110,14 @@ class Game {
 
 		return players;
 	}
-	update_message(new_message) {
-		if (new_message && this.last_msg)
-			return this.last_msg
-				.edit({ embeds: [this.current_embed], components: this.current_components })
-				.then((msg) => (this.last_msg = msg))
-				.catch();
+	update_message(interaction, new_message) {
+		if (interaction.isButton()) interaction.deferUpdate();
+
+		if (!new_message && this.last_msg) {
+			if (this.last_msg.interaction) return this.last_msg.interaction.editReply({ embeds: [this.current_embed], components: this.current_components }).catch();
+			else return this.last_msg.edit({ embeds: [this.current_embed], components: this.current_components }).catch();
+		}
+
 		return this.channel
 			.send({ embeds: [this.current_embed], components: this.current_components })
 			.then((msg) => (this.last_msg = msg))

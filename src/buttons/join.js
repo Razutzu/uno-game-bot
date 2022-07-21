@@ -6,7 +6,9 @@ module.exports = (interaction, client) => {
 
 	if (game.is_user(interaction.user)) return interaction.reply({ content: "You already joined." }).catch();
 
-	if (game.is_full()) return interaction.reply({ content: "Game is already full." });
+	if (game.has_started()) return interaction.reply({ content: "Game has already started." }).catch();
 
-	game.user_join(interaction.user);
+	if (game.is_full()) return interaction.reply({ content: "Game is already full." }).catch();
+
+	game.user_join(interaction);
 };

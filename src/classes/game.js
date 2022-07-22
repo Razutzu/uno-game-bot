@@ -63,6 +63,9 @@ class Game {
 		this.current_embed.setFields([{ name: "Players", value: this.players_to_string() }]);
 
 		if (this.users.length == 2) this.current_components[1].components[0].setDisabled(false); // enabling the 'Ready' button
+		else for (const user of this.users) user.ready = false;
+
+		this.current_embed.setFields([{ name: "Players", value: this.players_to_string() }]);
 
 		this.update_message(interaction, false);
 	}
@@ -88,6 +91,14 @@ class Game {
 		}
 		this.update_message(interaction, false);
 	}
+	user_ready(interaction) {
+		this.users.find((u) => u.user.id == interaction.user.id).ready = !this.users.find((u) => u.user.id == interaction.user.id).ready;
+		this.current_embed.setFields([{ name: "Players", value: this.players_to_string() }]);
+
+		if (!this.users.find((u) => !u.ready)) this.game_load();
+		else this.update_message(interaction, false);
+	}
+	game_load() {}
 	game_start() {}
 	game_stop() {}
 	game_end() {}

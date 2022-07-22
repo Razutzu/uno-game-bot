@@ -13,6 +13,8 @@ class Game {
 		this.users = [{ user: interaction.user, ready: false }];
 		this.players = [];
 
+		this.default_description = "You can use the command `/help` if you don't know how I work or you don't know the rules of the game.\n\nHave fun! 😁";
+
 		this.current_embed = new EmbedBuilder()
 			.setColor(client.clr)
 			.setAuthor({ name: "🎮 Let's play UNO! 🎮" })
@@ -43,7 +45,7 @@ class Game {
 			.then((msg) => (this.last_msg = msg))
 			.catch();
 
-		client.games.set(interaction.channel.id, this);
+		return client.games.set(interaction.channel.id, this);
 	}
 	has_started() {
 		if (this.started) return true;
@@ -62,12 +64,19 @@ class Game {
 		this.users.push({ user: interaction.user, ready: false });
 		this.current_embed.setFields([{ name: "Players", value: this.players_to_string() }]);
 
-		if (this.users.length == 2) this.current_components[1].components[0].setDisabled(false); // enabling the 'Ready' button
+		if (this.users.length == 2)
+			for (const action_row of this.current_components) {
+				for (const button of action_row.components) {
+					button.setDisabled(false);
+				}
+			}
 		else for (const user of this.users) user.ready = false;
+
+		if (this.current_embed.data.description != this.default_description) this.current_embed.setDescription(this.default_description);
 
 		this.current_embed.setFields([{ name: "Players", value: this.players_to_string() }]);
 
-		this.update_message(interaction, false);
+		return this.update_message(interaction, false, true);
 	}
 	user_leave(interaction) {
 		this.users.splice(this.users.indexOf(this.users.find((u) => u.user.id == interaction.user.id)), 1);
@@ -80,25 +89,56 @@ class Game {
 			}
 			this.current_embed.setDescription("All the players left so the game was cancelled. Use the `/create` command to create another game.");
 			this.current_embed.setFields([]);
-		} else if (this.users.length == 1) this.current_components[1].components[0].setDisabled(true);
+		}
+
+		if (this.users.length == 1)
+			for (const action_row of this.current_components) {
+				for (const button of action_row.components) {
+					if (["Join", "Leave"].includes(button.data.label)) continue;
+					button.setDisabled(true);
+				}
+			}
 
 		if (this.users.length >= 1) {
 			if (interaction.user.id == this.creator_id) this.creator_id = this.users[0].user.id;
 
 			for (const user of this.users) user.ready = false;
 
+			if (this.current_embed.data.description != this.default_description) this.current_embed.setDescription(this.default_description);
+
 			this.current_embed.setFields([{ name: "Players", value: this.players_to_string() }]);
 		}
-		this.update_message(interaction, false);
+		return this.update_message(interaction, false, true);
 	}
 	user_ready(interaction) {
 		this.users.find((u) => u.user.id == interaction.user.id).ready = !this.users.find((u) => u.user.id == interaction.user.id).ready;
 		this.current_embed.setFields([{ name: "Players", value: this.players_to_string() }]);
 
-		if (!this.users.find((u) => !u.ready)) this.game_load();
-		else this.update_message(interaction, false);
+		if (this.current_embed.data.description != this.default_description) this.current_embed.setDescription(this.default_description);
+
+		if (!this.users.find((u) => !u.ready)) return this.game_load(interaction);
+		else return this.update_message(interaction, false, true);
 	}
-	game_load() {}
+	game_load(interaction) {
+		let seconds = 3;
+
+		this.current_embed.setDescription(`All players are ready. Starting in **4 seconds**.`);
+		this.update_message(interaction, false, true);
+
+		const int = setInterval(() => {
+			if (seconds == -1) {
+				this.game_start();
+				return clearInterval(int);
+			}
+			if (this.users.find((u) => !u.ready)) {
+				this.current_embed.setDescription("You can use the command `/help` if you don't know how I work or you don't know the rules of the game.\n\nHave fun! 😁");
+				return clearInterval(int);
+			}
+			this.current_embed.setDescription(`All players are ready. Starting in **${seconds} seconds**`);
+			this.update_message(interaction, false, false);
+			seconds--;
+		}, 1000);
+	}
 	game_start() {}
 	game_stop() {}
 	game_end() {}
@@ -121,8 +161,10 @@ class Game {
 
 		return players;
 	}
-	update_message(interaction, new_message) {
-		if (interaction.isButton()) interaction.deferUpdate();
+	update_message(interaction, new_message, defer) {
+		console.log(`${Date.now() / 1000} Updated the message`);
+
+		if (interaction.isButton() && defer) interaction.deferUpdate();
 
 		if (!new_message && this.last_msg) {
 			if (this.last_msg.interaction) return this.last_msg.interaction.editReply({ embeds: [this.current_embed], components: this.current_components }).catch();

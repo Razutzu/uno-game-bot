@@ -127,7 +127,7 @@ class Game {
 
 		const int = setInterval(() => {
 			if (seconds == -1) {
-				this.game_start();
+				this.game_start(interaction);
 				return clearInterval(int);
 			}
 			if (this.users.find((u) => !u.ready)) {
@@ -139,7 +139,7 @@ class Game {
 			seconds--;
 		}, 1000);
 	}
-	game_start() {}
+	game_start(interaction) {}
 	game_stop() {}
 	game_end() {}
 	is_playable() {}
@@ -167,14 +167,32 @@ class Game {
 		if (interaction.isButton() && defer) interaction.deferUpdate();
 
 		if (!new_message && this.last_msg) {
-			if (this.last_msg.interaction) return this.last_msg.interaction.editReply({ embeds: [this.current_embed], components: this.current_components }).catch();
-			else return this.last_msg.edit({ embeds: [this.current_embed], components: this.current_components }).catch();
+			if (this.last_msg.interaction)
+				return this.last_msg.interaction.editReply({ embeds: [this.current_embed], components: this.current_components }).catch(() => {
+					return this.channel
+						.send({ embeds: [this.current_embed], components: this.current_components })
+						.then((msg) => (this.last_msg = msg))
+						.catch(() => {
+							this.game_end();
+						});
+				});
+			else
+				return this.last_msg.edit({ embeds: [this.current_embed], components: this.current_components }).catch(() => {
+					return this.channel
+						.send({ embeds: [this.current_embed], components: this.current_components })
+						.then((msg) => (this.last_msg = msg))
+						.catch(() => {
+							this.game_end();
+						});
+				});
 		}
 
 		return this.channel
 			.send({ embeds: [this.current_embed], components: this.current_components })
 			.then((msg) => (this.last_msg = msg))
-			.catch();
+			.catch(() => {
+				this.game_end();
+			});
 	}
 }
 

@@ -1,4 +1,4 @@
-const Game = require("../classes/game");
+const Game = require("../../classes/game");
 
 module.exports = (interaction, client) => {
 	// De terminat
